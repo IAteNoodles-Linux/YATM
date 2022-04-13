@@ -1,6 +1,7 @@
 "No bloated codes, just a simple task manager. Thinking of using CSV and Json and not a database."
 from json import loads
-from os import path 
+from os import path, makedirs
+import sys
 #from sys import argv #TODO
 
 #Reading the config file from $HOME/.config/YATM/config.json
@@ -16,6 +17,8 @@ __options__ = {
         "D":"DESCRIBE",
         "H":"HELP",
         "Q":"QUIT"}
+
+
 def print_options():
     "Prints the options and returns the user's choice."
     "In case of an invalid option, it will ask again."
@@ -29,6 +32,16 @@ def print_options():
     else:
         print("Invalid option.")
         print_options()
+
+#Getting the task files (.tasks) from a directory.
+def find_task_files(directory):
+    "Returns a list of the task files in the given directory."
+    "If the directory is not found, it will return an empty list."
+    if path.isdir(directory):
+        return [file for file in path.listdir(directory) if file.endswith(".tasks")]
+    else:
+        return []
+
 
 if path.isfile(path.expanduser("~/.config/YATM/config.json")):
     with open(path.expanduser("~/.config/YATM/config.json")) as config:
@@ -55,13 +68,34 @@ if current_task > count:
     #TODO Add a way to create a new task.
 else:
     print(task_list[current_task])
+    directory = Tasks[task_list[current_task]]["Directory"]
     choice = print_options()
+
+
+    #Editing the config of a task.
+    def edit_details(key, value):
+        "Edits the description of a task."
+        if key not in Task[task_list[current_task]]:
+            sys.stderr("No such key found.")
+        else:
+            task[key] = value
+        return task
+
+    def add_tasks(directory, task_name, task_description):
+        "Creates a file in the given directory with the given name, with extension .tasks"
+        "If the directory does not exist, it will be created."
+        if not path.isdir(directory):
+            makedirs(directory)
+        with open(path.expanduser(directory + "/" + task_name + ".tasks"), "w") as task_file:
+            task_file.write(task_description)
+
     if choice == "EDIT":
         #TODO Edit the task.
         pass
     elif choice == "ADD":
         #TODO Add a new task.
-        pass
+        add_tasks(directory, input("Task name: "), input("Description: "))
+
     elif choice == "REMOVE":
         #TODO Remove the task.
         pass
